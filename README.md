@@ -1,391 +1,190 @@
 # Ну что там?
 
-## Admin analytics upgrade
+> Развлекательный PHP + SQLite сайт с карточными паками, случайными предсказаниями и отдельной сценой открытия.
 
-2026-05-23 админская статистика стала нагляднее без внешней аналитики и без изменения публичной части сайта. `/admin` и `/admin/analytics` показывают русскоязычные KPI, фильтр периода, SVG/CSS-графики активности, популярные паки, распределение редкостей, агрегированную воронку и последние события.
+`Ну что там?` — portfolio/local-demo проект про короткие бытовые карточки: день, неделя, месяц, настроение, выбор, вопрос, маленький пинок и другие сценарии. Это не серьёзная астрология и не сервис точных прогнозов, а интерактивная витрина паков с лёгким casual-тоном.
 
-- Открытия паков считаются по `events.event_type = 'pack_opened'`.
-- Выпавшие карточки считаются по строкам `openings`.
-- Сохранения считаются по `saved_cards`.
-- Посетители считаются по `visitors`; за период используется `last_seen_at`, новые посетители — `first_seen_at`.
-- Последние события не показывают сырые IP/User-Agent, пароли, хеши и секретные payload-поля.
+Проект сделан без фреймворков: PHP, SQLite, vanilla frontend, локальная аналитика и аккуратная демо-инфраструктура. Сейчас он готов для локального показа через PHP server + Cloudflare Tunnel; production hardening ещё не завершён.
 
-Развлекательный PHP-проект про случайные карточные паки: день, неделя, месяц, настроение, выбор, маленький пинок и другие бытовые категории. Это не серьёзная астрология, не сайт по знакам зодиака и не сервис точных прогнозов. Стиль контента: casual, человечный, дружелюбный, немного ироничный, без пафосной эзотерики.
+## Highlights
 
-Сейчас реализованы этапы 1–6: фундамент, SQLite, seed-данные, backend API, auth/guest_id, рабочая главная, отдельная сцена открытия паков, личный кабинет, админ-панель, локальная аналитика и финальная демо-документация.
+- Отдельная сцена открытия: `/open?pack=slug`.
+- Карточки сначала лежат рубашкой вверх и раскрываются вручную по клику или клавиатуре.
+- Guest mode: можно пользоваться без аккаунта, с безопасным `guest_id`.
+- Auth: регистрация, вход, выход, CSRF для HTML-форм.
+- Личный кабинет: профиль, статистика, история, сохранённые карточки, заметки и фильтры.
+- Админка: управление паками, карточками, пользователями, admin logs.
+- Локальная аналитика без внешних трекеров: события хранятся в SQLite, сырой IP/User-Agent не сохраняются.
+- Local demo через Cloudflare Tunnel.
+- Backup/restore workflow для защиты `database/database.sqlite`.
+- Reduced motion toggle с сохранением предпочтения в `localStorage`.
 
-## Технический стек
+## Screenshots
+
+Скриншоты можно добавить позже в `docs/screenshots/`.
+
+| Экран | Placeholder |
+| --- | --- |
+| Homepage / pack showcase | `docs/screenshots/homepage-pack-showcase.png` |
+| Opening screen | `docs/screenshots/opening-screen.png` |
+| User cabinet | `docs/screenshots/user-cabinet.png` |
+| Admin analytics | `docs/screenshots/admin-analytics.png` |
+
+## Tech Stack
 
 - PHP 8.1+
-- SQLite через PDO
-- HTML5
-- CSS3
+- SQLite / PDO
 - Vanilla JavaScript / ES Modules
-- Без Laravel, Symfony, WordPress и обязательной Node.js production-зависимости
-- Без платных API и внешних AI/астрологических API
+- HTML / CSS
+- No Laravel, Symfony, WordPress or mandatory Node.js runtime
+- No paid APIs
+- No external analytics
 
-## Структура папок
+## Project Structure
 
 ```text
-public/              публичная директория сайта
-public/assets/       CSS, JS, изображения и звуки
-app/Core/            bootstrap, Router, Database, Response, Session, Security, Validator
-app/Controllers/     HTML/API контроллеры
-app/Models/          модели данных
-app/Services/        auth, guest_id, rate limit, random prediction service, cabinet, admin, analytics
-app/Views/           PHP-шаблоны
-config/              локальная конфигурация
-database/            SQLite schema.sql, seed.php и заметки
-storage/             logs/exports, writable
-docs/                архитектура, roadmap и состояние проекта
+public/      document root, entrypoint, assets
+app/         core, controllers, services, models, views
+database/    schema, seed script, SQLite notes
+config/      local config example and ignored local config
+storage/     logs, exports, sessions; writable runtime area
+docs/        architecture, demo, deployment, safety docs
+scripts/     local preflight/smoke/demo helper scripts
 ```
 
-## Первичная установка на пустой базе
+## Local Run
 
-`database/seed.php --fresh` используйте только для пустого проекта, где `database/database.sqlite` ещё не содержит пользовательских данных, или для намеренного полного reset. Эта команда пересоздаёт SQLite-базу.
-
-```bash
-cp config/config.example.php config/config.php
-php database/seed.php --fresh
-php -S localhost:8000 -t public
-```
-
-PowerShell на этой машине может требовать полный путь:
-
-```powershell
-C:\php\php.exe database/seed.php --fresh
-C:\php\php.exe -S localhost:8000 -t public
-```
-
-Откройте [http://localhost:8000](http://localhost:8000).
-
-`ADMIN_DEFAULT_PASSWORD` нужен только для локального seed. Не используйте дефолтный пароль в production.
-
-## Быстрый локальный запуск существующего проекта
-
-Обычный запуск уже существующего проекта не требует `seed --fresh`. Если в `database/database.sqlite` уже есть пользователи, аналитика, история, сохранённые карточки или правки из админки, считайте эти данные пользовательскими.
+Обычный запуск уже существующего проекта не требует `seed --fresh`. Если в `database/database.sqlite` уже есть пользователи, история, аналитика, сохранённые карточки или правки через админку, считайте эти данные пользовательскими.
 
 Windows PowerShell:
 
 ```powershell
-cd C:\path\to\web2
-if (-not (Test-Path config\config.php)) { Copy-Item config\config.example.php config\config.php }
+cd C:\Projects\web\web2
 C:\php\php.exe scripts\preflight.php
 C:\php\php.exe scripts\smoke.php
 C:\php\php.exe -S 127.0.0.1:8000 -t public
 ```
 
-Открыть сайт: [http://127.0.0.1:8000](http://127.0.0.1:8000).
+Открыть сайт:
 
-`scripts\preflight.php` и `scripts\smoke.php` проверены как read-only: они читают конфиг и SQLite, выполняют `SELECT`/проверки окружения и не пишут в БД или runtime-файлы. Если `smoke.php` сообщает, что базы нет, не применяйте `--fresh` к существующей рабочей базе.
+```text
+http://127.0.0.1:8000
+```
 
-## Опасный reset/seed
+`scripts\preflight.php` и `scripts\smoke.php` проверяют окружение и читают SQLite через `SELECT`; они не сбрасывают базу и не пишут runtime-данные.
 
-`database/seed.php --fresh` полностью сбрасывает `database/database.sqlite`: пользователей, историю, сохранённые карточки, аналитику, правки через админку и другие runtime-данные. Перед любым reset существующей базы сначала сделайте backup:
+## First Install on an Empty Database
+
+`database/seed.php --fresh` можно использовать только для первичной установки на пустом проекте или для намеренного полного reset. Эта команда пересоздаёт `database/database.sqlite` и стирает runtime-данные.
+
+```powershell
+cd C:\Projects\web\web2
+Copy-Item config\config.example.php config\config.php
+C:\php\php.exe database\seed.php --fresh
+C:\php\php.exe -S 127.0.0.1:8000 -t public
+```
+
+Перед любым reset существующей базы сначала сделайте backup:
 
 ```powershell
 Copy-Item database\database.sqlite "storage\exports\database-backup-$(Get-Date -Format 'yyyyMMdd-HHmmss').sqlite"
 ```
 
-Только после явного решения о полном reset можно запускать:
+Подробно: [docs/BACKUP_AND_RESTORE.md](docs/BACKUP_AND_RESTORE.md).
 
-```powershell
-C:\php\php.exe database\seed.php --fresh
-```
+## Local Demo Through Cloudflare Tunnel
 
-## Демо через Cloudflare Tunnel
-
-1. Запустите локальный PHP-сервер:
-
-```powershell
-C:\php\php.exe -S 127.0.0.1:8000 -t public
-```
-
-2. Во втором окне PowerShell запустите tunnel:
-
-```powershell
-cloudflared tunnel --url http://127.0.0.1:8000
-```
-
-3. Скопируйте временную `https://*.trycloudflare.com` ссылку и отправьте друзьям.
-
-Ограничения: компьютер должен быть включён, PHP-сервер и окно `cloudflared` должны работать, ссылка временная. Это демо, не production.
-
-Можно использовать helper scripts:
+Для временного показа локального сайта можно использовать два окна PowerShell:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\start-local.ps1
-powershell -ExecutionPolicy Bypass -File scripts\start-tunnel.ps1
-powershell -ExecutionPolicy Bypass -File scripts\check-tunnel.ps1
 ```
 
-Актуальная подробная инструкция: `docs/LOCAL_DEMO.md`.
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\start-tunnel.ps1
+```
 
-Для демо нужны два окна PowerShell:
+Quick Tunnel даёт временную ссылку `https://*.trycloudflare.com`. Это удобно для demo, но не является production deployment и не заменяет backup. Подробно: [docs/LOCAL_DEMO.md](docs/LOCAL_DEMO.md).
 
-1. PHP server: `powershell -ExecutionPolicy Bypass -File scripts\start-local.ps1`
-2. Cloudflare tunnel: `powershell -ExecutionPolicy Bypass -File scripts\start-tunnel.ps1`
+## Features
 
-Quick Tunnel зависит от доступа к `https://api.trycloudflare.com/tunnel`. Если локальный сайт на `http://127.0.0.1:8000` работает, но `cloudflared` получает `context deadline exceeded` или timeout при POST к Cloudflare API, это проблема сети/VPN/firewall/доступа к Cloudflare API, а не ошибка PHP-сайта. Для диагностики используйте `scripts\check-tunnel.ps1`.
+### Public Experience
 
-## Что есть на главной
+- Главная страница как витрина паков.
+- Featured-паки и категории сценариев.
+- `/open?pack=slug` как отдельная сцена открытия.
+- Поддержка 1/3/5 карточек для daily/weekly/monthly.
+- Контекстные поля для question, choice, mood, direction и других сценариев.
+- Ручное раскрытие карточек.
+- Rarity UI и визуальные состояния.
+- Guest-friendly сообщения для сохранения карточек.
 
-- Hero-блок и верхняя панель гостя/пользователя.
-- Витрина 14 активных паков из `GET /api/packs`.
-- Переходы на отдельную сцену `/open?pack=slug`.
-- Открытие паков на `/open` через `POST /api/open-pack`.
-- Ручное раскрытие карточек по клику: сначала видна рубашка, потом предсказание.
-- Контекстные поля для question, choice, mood и direction на странице открытия.
-- Отображение 1/3/5 карточек для daily/weekly/monthly без наложений.
-- Rarity-бейджи и визуальные состояния.
-- Сохранение карточки через `POST /api/save-card`.
-- Для гостя дружелюбное сообщение с входом/регистрацией.
-- Последние 5 открытий через `GET /api/history`.
-- Мини-статистика через `GET /api/stats`: карточки и паки показываются отдельно.
-- Переключатель “Меньше анимаций” с сохранением в `localStorage`.
+### User Cabinet
 
-## Что есть в кабинете
-
-`GET /cabinet` доступен авторизованному пользователю. Гость видит понятное приглашение войти или зарегистрироваться.
-
-- Профиль: username, email, регистрация, последний вход.
-- Расширенная статистика: открытия, сегодня, сохранённые карточки, любимый пак, частая редкость, первые/последние открытия.
+- Профиль пользователя.
+- Расширенная статистика открытий.
 - Коллекция сохранённых карточек.
 - Заметки к сохранённым карточкам.
-- Удаление карточки из коллекции.
-- История открытий с фильтрами по паку, редкости и сохранённым.
-- Фильтры коллекции по редкости, поиску и сортировке.
+- Фильтры, поиск и сортировка.
+- История открытий.
 - Смена username и пароля.
 
-## Что есть в админке
+### Admin Area
 
-`GET /admin` доступен только пользователю с `role = admin`. Первый admin создаётся через `database/seed.php` из `config/config.php` или `config/config.example.php`: `ADMIN_EMAIL` и `ADMIN_DEFAULT_PASSWORD`. Дефолтный пароль годится только для локальной разработки.
+- Доступ только для `role = admin`.
+- Dashboard со сводкой.
+- Управление паками и карточками.
+- Управление пользователями.
+- Защита от потери последнего admin.
+- Admin logs.
+- `/admin/analytics` с KPI, графиками, топами паков, редкостями и последними событиями.
 
-- Dashboard со статистикой сайта.
-- Управление паками: список, создание, редактирование, включение/выключение, sort order.
-- Управление карточками: список, фильтры, поиск, создание, редактирование, включение/выключение.
-- Пользователи: список, роль, блокировка/разблокировка, счётчики открытий и сохранений.
-- Защита от случайного удаления последнего admin.
-- Admin logs для важных действий.
-- Внутренняя аналитика: посетители, события, топ event_type, топ открываемых паков и последние события.
+### Local Analytics
 
-## Локальная аналитика
+Аналитика остаётся внутри SQLite. Проект не использует Google Analytics или внешние счётчики.
 
-Аналитика хранится только в SQLite, без Google Analytics и внешних сервисов. Сырой IP не сохраняется: пишутся `ip_hash` и `user_agent_hash`.
+Сохраняются события вроде `page_view`, `pack_opened`, `card_saved`, auth-событий, profile/admin actions. Сырой IP и полный User-Agent не выводятся и не используются как публичные данные: в аналитике хранятся хеши.
 
-Пишутся события:
+## Safety Notes
 
-- `page_view`
-- `pack_opened`
-- `card_saved`
-- `save_failed_guest`
-- `register`, `login`, `logout`
-- `profile_update`, `password_change`
-- `admin_action`
+- `database/database.sqlite` не коммитится.
+- `config/config.php` не коммитится.
+- `storage/logs/*`, `storage/exports/*`, `storage/sessions/*` не коммитятся.
+- `database/seed.php --fresh` не является обычной командой запуска или проверки.
+- Backup нужен перед database/content changes, deploy, restore, рискованными Codex-задачами и любыми reset-действиями.
+- Browser/UI/API-проверки могут писать `page_view`, `openings`, `events`, `rate_limits`, `sessions/cookies`; для чистых тестов используйте копию базы.
+- На hosting/VPS document root должен указывать на `public/`.
+- `database/`, `config/` и `storage/` не должны быть публично доступны.
 
-## HTML маршруты
+## Repository Status
 
-- `GET /` - рабочая главная страница.
-- `GET /login` - минимальная форма входа.
-- `GET /register` - минимальная форма регистрации.
-- `GET /cabinet` - личный кабинет.
-- `GET /profile` - alias на кабинет.
-- `GET /admin` - dashboard админки.
-- `GET /admin/packs` - управление паками.
-- `GET /admin/predictions` - управление карточками.
-- `GET /admin/users` - пользователи.
-- `GET /admin/analytics` - внутренняя аналитика.
-- `GET /admin/logs` - журнал действий.
-- `POST /login` - вход с CSRF.
-- `POST /register` - регистрация с CSRF.
-- `POST /logout` - выход с CSRF.
+- Local-demo ready: проект можно запускать локально и показывать через Cloudflare Tunnel.
+- Production hardening не завершён: нужны финальные security headers/CSP, monitoring, log rotation, backup automation и полноценный deployment process.
+- External analytics нет.
+- SQLite runtime data намеренно игнорируется и не должна попадать в репозиторий.
+- Сайт остаётся portfolio/local-demo проектом, не production SaaS.
 
-## API endpoints
+## Roadmap
 
-- `GET /api/health`
-- `GET /api/packs`
-- `GET /api/auth/me`
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `POST /api/open-pack`
-- `POST /api/save-card`
-- `GET /api/history`
-- `GET /api/stats`
-- `GET /api/cabinet/summary`
-- `GET /api/cabinet/saved`
-- `POST /api/cabinet/saved/update-note`
-- `POST /api/cabinet/saved/delete`
-- `GET /api/cabinet/history`
-- `POST /api/cabinet/profile/update`
-- `POST /api/cabinet/profile/change-password`
-- `GET /admin/api/summary`
-- `GET /admin/api/packs`
-- `POST /admin/api/packs/create`
-- `POST /admin/api/packs/update`
-- `POST /admin/api/packs/toggle`
-- `POST /admin/api/packs/reorder`
-- `GET /admin/api/predictions`
-- `POST /admin/api/predictions/create`
-- `POST /admin/api/predictions/update`
-- `POST /admin/api/predictions/toggle`
-- `GET /admin/api/users`
-- `POST /admin/api/users/toggle-block`
-- `POST /admin/api/users/update-role`
-- `GET /admin/api/analytics`
-- `GET /admin/api/logs`
+- Premium motion pipeline для opening scene и pack interactions.
+- UI/UX polish главной, сцены открытия, кабинета и аналитики.
+- User card import from Word.
+- Production hardening: security headers/CSP, monitoring, log rotation, backup automation.
+- Deployment/VPS workflow.
+- Опционально: экспорт статистики, PNG-карточки, достижения в UI.
 
-## Быстрые проверки
+## Documentation
 
-```bash
-curl http://localhost:8000/api/health
-curl http://localhost:8000/api/packs
-```
+- [Architecture](docs/ARCHITECTURE.md)
+- [Project State](docs/PROJECT_STATE.md)
+- [Local Demo](docs/LOCAL_DEMO.md)
+- [Deployment Notes](docs/DEPLOYMENT.md)
+- [Backup and Restore](docs/BACKUP_AND_RESTORE.md)
+- [Motion and Animation Plan](docs/MOTION_AND_ANIMATION_PLAN.md)
+- [UI/UX Audit Notes](docs/UI_UX_AUDIT_NOTES.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Content Guide](docs/CONTENT_GUIDE.md)
 
-Open daily:
+## Disclaimer
 
-```bash
-curl -X POST http://localhost:8000/api/open-pack \
-  -H "Content-Type: application/json" \
-  -d "{\"pack\":\"daily\"}"
-```
-
-Open question:
-
-```bash
-curl -X POST http://localhost:8000/api/open-pack \
-  -H "Content-Type: application/json" \
-  -d "{\"pack\":\"question\",\"user_question\":\"Стоит ли сегодня начинать новое?\"}"
-```
-
-Open choice:
-
-```bash
-curl -X POST http://localhost:8000/api/open-pack \
-  -H "Content-Type: application/json" \
-  -d "{\"pack\":\"choice\",\"choice_a\":\"Сделать сейчас\",\"choice_b\":\"Отложить\"}"
-```
-
-История и статистика:
-
-```bash
-curl http://localhost:8000/api/history
-curl http://localhost:8000/api/stats
-```
-
-Кабинет через cookie jar:
-
-```bash
-curl -c cookies.txt -b cookies.txt -X POST http://localhost:8000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d "{\"username\":\"tester\",\"email\":\"tester@example.com\",\"password\":\"password123\",\"password_confirm\":\"password123\"}"
-
-curl -c cookies.txt -b cookies.txt -X POST http://localhost:8000/api/open-pack \
-  -H "Content-Type: application/json" \
-  -d "{\"pack\":\"daily\"}"
-
-curl -c cookies.txt -b cookies.txt http://localhost:8000/api/cabinet/summary
-curl -c cookies.txt -b cookies.txt http://localhost:8000/api/cabinet/history
-curl -c cookies.txt -b cookies.txt http://localhost:8000/api/cabinet/saved
-```
-
-Для гостевой истории через curl используйте cookie jar:
-
-```bash
-curl -c cookies.txt -b cookies.txt http://localhost:8000/api/auth/me
-curl -c cookies.txt -b cookies.txt -X POST http://localhost:8000/api/open-pack -H "Content-Type: application/json" -d "{\"pack\":\"daily\"}"
-curl -c cookies.txt -b cookies.txt http://localhost:8000/api/history
-```
-
-## Проверки разработки
-
-Эти проверки не требуют сброса базы:
-
-```powershell
-C:\php\php.exe -l public\index.php
-C:\php\php.exe -l app\Views\layout.php
-C:\php\php.exe -l app\Views\home.php
-C:\php\php.exe -l app\Views\cabinet.php
-C:\php\php.exe -l app\Controllers\CabinetController.php
-C:\php\php.exe -l app\Services\CabinetService.php
-C:\php\php.exe -l app\Controllers\AdminController.php
-C:\php\php.exe -l app\Services\AdminService.php
-C:\php\php.exe -l app\Services\AnalyticsService.php
-C:\php\php.exe scripts\preflight.php
-C:\php\php.exe scripts\smoke.php
-C:\php\php.exe -S 127.0.0.1:8000 -t public
-```
-
-Не добавляйте `database\seed.php --fresh` в обычные проверки: это reset базы, а не smoke-test.
-
-Если `sqlite3` установлен:
-
-```bash
-sqlite3 database/database.sqlite "SELECT COUNT(*) FROM packs;"
-sqlite3 database/database.sqlite "SELECT COUNT(*) FROM predictions;"
-sqlite3 database/database.sqlite "SELECT COUNT(*) FROM openings;"
-```
-
-Если `sqlite3` CLI недоступен:
-
-```bash
-php -r "$pdo=new PDO('sqlite:database/database.sqlite'); echo $pdo->query('SELECT COUNT(*) FROM openings')->fetchColumn(), PHP_EOL;"
-```
-
-Browser/UI-проверки и некоторые API-запросы могут писать runtime-события в SQLite: `page_view`, `openings`, `rate_limits`, `sessions`/cookies и связанные записи аналитики. Для чистых UI-тестов используйте копию базы.
-
-## Audit and responsive pass
-
-2026-05-23 проведён осторожный аудит и responsive-доводка без redesign, изменения schema/seed, auth, cabinet, admin, analytics и механики открытия карточек.
-
-- Добавлены `docs/AUDIT_REPORT.md` и `docs/RESPONSIVE_REPORT.md`.
-- Доведены layout guards, touch targets, login/register mobile padding, home pack grids, `/open` card sizing for 1/3/5 cards, cabinet inherited responsive behavior, admin filter bars and table wrappers.
-- Дополнительно проверена и исправлена mobile-точка `/open` для 3 карт: первая карта теперь стартует внутри scroll-зоны и нормально раскрывается по tap/click.
-- Убран лишний повторный запрос `/api/history` на главной при загрузке статистики.
-- Оставшиеся production-риски: заменить `SESSION_SECRET`, сменить дефолтный admin password, добавить security headers/CSP, backup/restore, monitoring и log rotation.
-
-## Hosting/VPS notes
-
-- Document root должен указывать на `public/`.
-- `config/config.php` создаётся вручную из `config/config.example.php`.
-- `SESSION_SECRET` нужно заменить на длинную случайную строку.
-- Дефолтный admin password нужно заменить сразу после установки.
-- `database/database.sqlite` должен быть вне публичного доступа. В текущей структуре он вне `public/`.
-- `storage/logs`, `storage/exports`, `storage/sessions` должны быть writable.
-- На сервере должен быть включён `pdo_sqlite`.
-- Не запускайте `seed.php --fresh` на живом сайте или рабочей локальной базе без backup и явного решения о полном reset.
-- Backup базы: сохранить копию `database/database.sqlite`.
-
-Пример backup в PowerShell:
-
-```powershell
-Copy-Item database\database.sqlite "storage\exports\database-backup-$(Get-Date -Format 'yyyyMMdd-HHmmss').sqlite"
-```
-
-Подробный workflow: `docs/BACKUP_AND_RESTORE.md`.
-
-Что нельзя коммитить:
-
-- `config/config.php`
-- `database/database.sqlite`
-- `storage/logs/*`
-- `storage/exports/*`
-- `storage/sessions/*`
-
-## Что ещё не реализовано
-
-- Экспорт статистики.
-- PNG-скачивание карточек.
-- Достижения в UI.
-- Полный production hardening, мониторинг и настоящий деплой.
-
-## Security notes
-
-- Реальные секреты не хранятся в репозитории.
-- `config/config.php` и `database/database.sqlite` добавлены в `.gitignore`.
-- Пароли хранятся через `password_hash`.
-- Аналитика не хранит сырой IP или полный User-Agent, только хеши.
-- SQLite подключается через PDO с `ERRMODE_EXCEPTION`.
-- Включаются foreign keys.
-- Есть CSRF для HTML-форм, guest_id без персональных данных и базовый rate limit.
-- Все карточки являются развлекательным случайным контентом и не являются медицинскими, финансовыми или юридическими рекомендациями.
+Все карточки являются развлекательным случайным контентом. Это не медицинские, финансовые, юридические или иные профессиональные рекомендации.
