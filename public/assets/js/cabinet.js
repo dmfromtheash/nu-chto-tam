@@ -27,6 +27,7 @@ const state = {
 const qs = (selector, root = document) => root.querySelector(selector);
 const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 const root = () => qs('[data-cabinet-app]');
+const csrfToken = () => root()?.dataset.csrf || '';
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   '&': '&amp;',
@@ -67,6 +68,14 @@ const api = async (path, options = {}) => {
 
   return payload;
 };
+
+const cabinetMutation = (path, payload) => api(path, {
+  method: 'POST',
+  headers: {
+    'X-CSRF-Token': csrfToken(),
+  },
+  body: JSON.stringify(payload),
+});
 
 const storageGet = (key) => {
   try {
@@ -348,9 +357,9 @@ const updateNote = async (savedId) => {
   const input = qs(`[data-note-input="${savedId}"]`);
   const note = input?.value || '';
 
-  const payload = await api('/api/cabinet/saved/update-note', {
-    method: 'POST',
-    body: JSON.stringify({ saved_id: Number(savedId), note }),
+  const payload = await cabinetMutation('/api/cabinet/saved/update-note', {
+    saved_id: Number(savedId),
+    note,
   });
 
   setMessage(payload.message || 'Заметка сохранена.', 'success');
@@ -358,9 +367,8 @@ const updateNote = async (savedId) => {
 };
 
 const deleteSaved = async (savedId) => {
-  const payload = await api('/api/cabinet/saved/delete', {
-    method: 'POST',
-    body: JSON.stringify({ saved_id: Number(savedId) }),
+  const payload = await cabinetMutation('/api/cabinet/saved/delete', {
+    saved_id: Number(savedId),
   });
 
   setMessage(payload.message || 'Карточка убрана из коллекции.', 'success');
@@ -368,11 +376,8 @@ const deleteSaved = async (savedId) => {
 };
 
 const updateProfile = async (form) => {
-  const payload = await api('/api/cabinet/profile/update', {
-    method: 'POST',
-    body: JSON.stringify({
-      username: new FormData(form).get('username'),
-    }),
+  const payload = await cabinetMutation('/api/cabinet/profile/update', {
+    username: new FormData(form).get('username'),
   });
 
   setMessage(payload.message || 'Профиль обновлён.', 'success');
@@ -381,13 +386,10 @@ const updateProfile = async (form) => {
 
 const changePassword = async (form) => {
   const data = new FormData(form);
-  const payload = await api('/api/cabinet/profile/change-password', {
-    method: 'POST',
-    body: JSON.stringify({
-      current_password: data.get('current_password'),
-      new_password: data.get('new_password'),
-      new_password_confirm: data.get('new_password_confirm'),
-    }),
+  const payload = await cabinetMutation('/api/cabinet/profile/change-password', {
+    current_password: data.get('current_password'),
+    new_password: data.get('new_password'),
+    new_password_confirm: data.get('new_password_confirm'),
   });
 
   form.reset();

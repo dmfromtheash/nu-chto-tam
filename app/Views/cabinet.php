@@ -7,12 +7,18 @@ use App\Core\Security;
 $currentUser = $currentUser ?? null;
 $messages = $messages ?? [];
 $errors = $errors ?? [];
+$csrfToken = isset($csrfToken) ? (string) $csrfToken : '';
 $isAuthenticated = is_array($currentUser);
 $displayName = $isAuthenticated ? (string) $currentUser['username'] : 'Гость';
 $appName = (string) config_value('APP_NAME', 'Ну что там?');
 $displayInitial = function_exists('mb_substr') ? mb_substr($displayName, 0, 1, 'UTF-8') : substr($displayName, 0, 1);
 ?>
-<main class="app-shell cabinet-shell" data-cabinet-app data-authenticated="<?= $isAuthenticated ? 'true' : 'false' ?>">
+<main
+    class="app-shell cabinet-shell"
+    data-cabinet-app
+    data-authenticated="<?= $isAuthenticated ? 'true' : 'false' ?>"
+    data-csrf="<?= Security::escape($csrfToken) ?>"
+>
     <header class="topbar" aria-label="Верхняя панель">
         <a class="brand" href="/" aria-label="На главную">
             <span class="brand-mark" aria-hidden="true">?</span>
