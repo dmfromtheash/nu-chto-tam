@@ -45,7 +45,7 @@ $displayName = $isAuthenticated ? (string) $currentUser['username'] : $ui('commo
     <section class="game-hero home-hero" aria-labelledby="page-title">
         <p class="eyebrow"><?= Security::escape($ui('home.hero.eyebrow', 'Карточный рандом для обычных дней')) ?></p>
         <h1 id="page-title"><?= Security::escape($ui('home.hero.title', 'Ну что там?')) ?></h1>
-        <p class="game-hero__lead"><?= Security::escape($ui('home.hero.short_lead', 'Выбери пак под день, настроение или большой заход — и открой карту без лишней драмы.')) ?></p>
+        <p class="game-hero__lead"><?= Security::escape($ui('home.hero.lead', 'Выбери пак, открой карту и посмотри, что сегодня придумал рандом.')) ?></p>
         <div class="home-hero__actions">
             <a class="button" href="#section-start"><?= Security::escape($ui('home.hero.choose_button', 'Выбрать пак')) ?></a>
         </div>
