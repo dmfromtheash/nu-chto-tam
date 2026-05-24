@@ -34,7 +34,7 @@ $ui = static fn (string $key, string $fallback): string => (string) ($uiTexts[$k
                     $value = (string) ($item['value'] ?? $item['default'] ?? '');
                     $type = (string) ($item['type'] ?? 'input');
                     ?>
-                    <form class="admin-text-row" data-admin-form data-endpoint="/admin/api/texts/update">
+                    <form class="admin-text-row" data-admin-form data-admin-text-form data-endpoint="/admin/api/texts/update">
                         <input type="hidden" name="key" value="<?= Security::escape($key) ?>">
                         <label>
                             <span><?= Security::escape($label) ?></span>
@@ -46,6 +46,7 @@ $ui = static fn (string $key, string $fallback): string => (string) ($uiTexts[$k
                             <?php endif; ?>
                         </label>
                         <button class="button" type="submit">Сохранить</button>
+                        <div class="inline-feedback admin-text-feedback" data-admin-inline-feedback aria-live="polite" hidden></div>
                     </form>
                 <?php endforeach; ?>
             </div>

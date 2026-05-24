@@ -11,6 +11,52 @@ const setFeedback = (message = '', type = 'info') => {
   box.className = `admin-feedback is-${type}`;
 };
 
+const inlineFeedbackTimers = new WeakMap();
+const savedStateTimers = new WeakMap();
+
+const showInlineFeedback = (target, message, type = 'success') => {
+  const box = typeof target === 'string' ? qs(target) : target;
+  if (!box) return;
+
+  const previousTimer = inlineFeedbackTimers.get(box);
+  if (previousTimer) window.clearTimeout(previousTimer);
+
+  box.textContent = message || (type === 'success' ? 'Сохранено.' : '');
+  box.classList.remove('is-success', 'is-error', 'is-loading');
+  box.classList.add(`is-${type}`);
+  box.hidden = box.textContent === '';
+
+  if (type === 'success' && !box.hidden) {
+    const timer = window.setTimeout(() => {
+      box.hidden = true;
+      box.textContent = '';
+      box.classList.remove('is-success', 'is-error', 'is-loading');
+      inlineFeedbackTimers.delete(box);
+    }, 2600);
+    inlineFeedbackTimers.set(box, timer);
+  }
+};
+
+const flashClass = (element, className) => {
+  if (!(element instanceof Element)) return;
+
+  const previousTimer = savedStateTimers.get(element);
+  if (previousTimer) window.clearTimeout(previousTimer);
+
+  element.classList.add(className);
+  const timer = window.setTimeout(() => {
+    element.classList.remove(className);
+    savedStateTimers.delete(element);
+  }, 2600);
+  savedStateTimers.set(element, timer);
+};
+
+const flashTextRowSaved = (form) => {
+  flashClass(form, 'is-saved');
+  qsa('input[name="value"], textarea[name="value"]', form).forEach((field) => flashClass(field, 'field-saved'));
+  flashClass(qs('button[type="submit"]', form), 'button-saved');
+};
+
 const csrfToken = () => root()?.dataset.csrf || '';
 
 const formPayload = (form) => {
@@ -64,11 +110,22 @@ const handleAdminForm = async (event) => {
     return;
   }
 
-  setFeedback('Сохраняю...', 'loading');
+  const inlineFeedback = qs('[data-admin-inline-feedback]', form);
+  if (inlineFeedback) {
+    showInlineFeedback(inlineFeedback, 'Сохраняю...', 'loading');
+  } else {
+    setFeedback('Сохраняю...', 'loading');
+  }
 
   try {
     const response = await postJson(endpoint, formPayload(form));
-    setFeedback(response.message || 'Готово.', 'success');
+    if (inlineFeedback) {
+      setFeedback('');
+      showInlineFeedback(inlineFeedback, response.message || 'Сохранено.');
+      flashTextRowSaved(form);
+    } else {
+      setFeedback(response.message || 'Готово.', 'success');
+    }
 
     if (form.dataset.successRedirect) {
       window.location.href = form.dataset.successRedirect;
@@ -79,7 +136,11 @@ const handleAdminForm = async (event) => {
       window.location.reload();
     }
   } catch (error) {
-    setFeedback(error.message || 'Не получилось. Попробуй ещё раз.', 'error');
+    if (inlineFeedback) {
+      showInlineFeedback(inlineFeedback, error.message || 'Не получилось. Попробуй ещё раз.', 'error');
+    } else {
+      setFeedback(error.message || 'Не получилось. Попробуй ещё раз.', 'error');
+    }
   }
 };
 

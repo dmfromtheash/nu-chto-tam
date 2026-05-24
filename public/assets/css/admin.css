@@ -621,6 +621,13 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.045);
+  transition: border-color 170ms ease, box-shadow 170ms ease, background 170ms ease;
+}
+
+.admin-text-row.is-saved {
+  border-color: rgba(139, 212, 158, 0.48);
+  box-shadow: 0 0 0 3px rgba(139, 212, 158, 0.1);
+  background: rgba(139, 212, 158, 0.055);
 }
 
 .admin-text-row label {
@@ -640,6 +647,20 @@
 .admin-text-row textarea {
   min-height: 96px;
   resize: vertical;
+}
+
+.admin-text-row input[name="value"],
+.admin-text-row textarea[name="value"] {
+  transition: border-color 170ms ease, box-shadow 170ms ease, background 170ms ease;
+}
+
+.admin-text-feedback {
+  grid-column: 1 / -1;
+  margin-top: -4px;
+}
+
+.admin-text-feedback.is-loading {
+  color: var(--accent-2);
 }
 
 @media (max-width: 760px) {
