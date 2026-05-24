@@ -356,7 +356,7 @@ const renderPackGrid = () => {
   if (!grid) return;
 
   if (!state.packs.length) {
-    grid.innerHTML = '<p class="empty-state">Паки не загрузились. Попробуй обновить витрину.</p>';
+    grid.innerHTML = `<p class="empty-state">${escapeHtml(uiText('home.packs.error', 'Паки не загрузились. Попробуй обновить витрину.'))}</p>`;
     renderFeaturedPacks();
     return;
   }
@@ -468,14 +468,14 @@ const renderPackGrid = () => {
 
 const loadPacks = async () => {
   const grid = qs('[data-pack-grid]');
-  if (grid) grid.innerHTML = '<p class="empty-state">Загружаю паки. Собираю витрину.</p>';
+  if (grid) grid.innerHTML = `<p class="empty-state">${escapeHtml(uiText('home.packs.loading', 'Загружаю паки. Собираю витрину.'))}</p>`;
 
   try {
     const payload = await api('/api/packs');
     state.packs = payload.packs || [];
     renderPackGrid();
   } catch (error) {
-    if (grid) grid.innerHTML = `<p class="empty-state">${escapeHtml(error.message || 'Паки не загрузились.')}</p>`;
+    if (grid) grid.innerHTML = `<p class="empty-state">${escapeHtml(error.message || uiText('home.packs.error', 'Паки не загрузились.'))}</p>`;
   }
 };
 
@@ -489,7 +489,7 @@ const loadHistory = async () => {
     const items = state.history.slice(0, 5);
 
     if (!items.length) {
-      target.innerHTML = '<p class="empty-state">Пока пусто. Последние открытия появятся здесь.</p>';
+      target.innerHTML = `<p class="empty-state">${escapeHtml(uiText('home.history.empty', 'Пока пусто. Последние открытия появятся здесь.'))}</p>`;
       return;
     }
 
