@@ -13,6 +13,11 @@ if (!is_array($config)) {
     $config = [];
 }
 
+$envDbPath = getenv('NCHT_DB_PATH');
+if (is_string($envDbPath) && trim($envDbPath) !== '') {
+    $config['DB_PATH'] = trim($envDbPath);
+}
+
 $dbPath = (string) ($config['DB_PATH'] ?? ($root . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'database.sqlite'));
 $checks = [];
 

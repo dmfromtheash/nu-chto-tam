@@ -50,6 +50,11 @@ if (!is_array($loadedConfig)) {
 }
 
 $config = array_merge($defaultConfig, $loadedConfig);
+$envDbPath = getenv('NCHT_DB_PATH');
+if (is_string($envDbPath) && trim($envDbPath) !== '') {
+    $config['DB_PATH'] = trim($envDbPath);
+}
+
 $appEnv = (string) ($config['APP_ENV'] ?? 'production');
 $isDebug = in_array($appEnv, ['local', 'development', 'dev', 'testing'], true);
 

@@ -13,10 +13,15 @@ if (!is_array($config)) {
     $config = [];
 }
 
+$envDbPath = getenv('NCHT_DB_PATH');
+if (is_string($envDbPath) && trim($envDbPath) !== '') {
+    $config['DB_PATH'] = trim($envDbPath);
+}
+
 $dbPath = (string) ($config['DB_PATH'] ?? ($root . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'database.sqlite'));
 
 if (!is_file($dbPath)) {
-    fwrite(STDERR, "database.sqlite not found. Run: php database/seed.php --fresh\n");
+    fwrite(STDERR, "SQLite database not found at: {$dbPath}\n");
     exit(1);
 }
 

@@ -50,6 +50,8 @@ C:\php\php.exe scripts\smoke.php
 
 По коду эти скрипты читают конфиг и SQLite, проверяют окружение и таблицы/счётчики через `SELECT`, но не пишут в `database/database.sqlite` и runtime-файлы.
 
+Если нужно запустить local demo на тестовой копии SQLite, используйте env override `NCHT_DB_PATH` и заранее созданную копию базы вне `public/`. Команды и ограничения описаны в `docs/BACKUP_AND_RESTORE.md`.
+
 ## 2. Запустить Cloudflare Tunnel
 
 Откройте второе окно PowerShell:

@@ -71,18 +71,33 @@ Get-Item database\database.sqlite | Select-Object Name, Length, LastWriteTime
 
 UI/browser/API-проверки могут писать runtime-события в SQLite: `page_view`, `openings`, `events`, `rate_limits`, `sessions/cookies`. Если нужно сохранить рабочую базу полностью неизменной, не запускайте такие проверки на `database/database.sqlite`.
 
-Проект уже поддерживает путь к базе через `DB_PATH` в `config/config.php`. Это видно в `config/config.example.php`, `app/Core/bootstrap.php`, `app/Core/Database.php`, `scripts/preflight.php` и `scripts/smoke.php`: все они читают `DB_PATH` из config-массива с fallback на `database/database.sqlite`.
+Проект поддерживает путь к базе через `DB_PATH` в config, а также временный env override `NCHT_DB_PATH`. Если `NCHT_DB_PATH` задан и не пустой, runtime, `scripts/preflight.php` и `scripts/smoke.php` используют его как путь к SQLite. Если переменная не задана, обычное поведение не меняется: проект берёт `DB_PATH` из `config/config.php` или fallback на `database/database.sqlite`.
 
-При этом удобного one-command test-db workflow в проекте пока нет. Безопасная идея для будущей ручной проверки:
+Безопасная идея для ручной проверки:
 
 1. Сначала сделать backup рабочей базы.
-2. Скопировать `database/database.sqlite` в отдельный файл, например в `storage/exports/test-database.sqlite`.
-3. Временно указать этот файл в `config/config.php` как `DB_PATH`.
-4. Запустить PHP server уже с тестовым `DB_PATH`.
+2. Скопировать `database/database.sqlite` в отдельный файл вне `public/`, например в `storage/exports/local-test-database.sqlite`.
+3. Временно указать тестовый путь через `NCHT_DB_PATH`.
+4. Запустить read-only проверки и PHP server уже с тестовым `DB_PATH`.
 5. Выполнять UI/browser/API-проверки на тестовой копии.
-6. После проверки остановить PHP server и вернуть `DB_PATH` на рабочую базу.
+6. После проверки остановить PHP server и очистить переменную окружения.
 
-Не подменяйте живую базу без backup. Не редактируйте `config/config.php` вслепую, если не уверены, какой путь сейчас использует проект. Для постоянного удобного переключения лучше сделать отдельную будущую safe test-db workflow-задачу, а не импровизировать во время рискованной проверки.
+Пример PowerShell-команд для будущего запуска на уже созданной тестовой копии:
+
+```powershell
+$env:NCHT_DB_PATH = "C:\Projects\web\web2\storage\exports\local-test-database.sqlite"
+C:\php\php.exe scripts\preflight.php
+C:\php\php.exe scripts\smoke.php
+C:\php\php.exe -S 127.0.0.1:8000 -t public
+```
+
+После тестов очистите переменную:
+
+```powershell
+Remove-Item Env:\NCHT_DB_PATH
+```
+
+`NCHT_DB_PATH` не создаёт тестовую базу сам. Файл нужно заранее создать как копию рабочей базы, а не через `seed.php --fresh`. Не подменяйте живую базу без backup и не редактируйте `config/config.php` вслепую, если можно использовать env override.
 
 ## 6. Restore: как восстановить базу
 

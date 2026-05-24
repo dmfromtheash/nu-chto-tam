@@ -1,5 +1,11 @@
 # Project State
 
+## DB path env override 2026-05-24
+
+- Добавлен временный env override `NCHT_DB_PATH`: runtime bootstrap, `scripts/preflight.php` и `scripts/smoke.php` используют его как `DB_PATH`, если переменная задана и не пуста.
+- Обычный запуск без `NCHT_DB_PATH` остаётся прежним: используется `DB_PATH` из `config/config.php` или fallback на `database/database.sqlite`.
+- `docs/BACKUP_AND_RESTORE.md` и `docs/LOCAL_DEMO.md` уточняют safe test DB workflow: тестовая база должна быть заранее созданной копией рабочей базы, `seed.php --fresh` для этого не используется.
+
 ## Cabinet JSON CSRF 2026-05-24
 
 - Добавлена CSRF-проверка только для authenticated cabinet JSON mutations: `POST /api/cabinet/saved/update-note`, `POST /api/cabinet/saved/delete`, `POST /api/cabinet/profile/update`, `POST /api/cabinet/profile/change-password`.
