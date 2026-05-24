@@ -13,6 +13,9 @@ const setFeedback = (message = '', type = 'info') => {
 
 const inlineFeedbackTimers = new WeakMap();
 const savedStateTimers = new WeakMap();
+const contentFormBaselines = new WeakMap();
+const contentFormDirtyFields = new WeakMap();
+const CONTENT_FORM_REDIRECT_DELAY_MS = 700;
 
 const showInlineFeedback = (target, message, type = 'success') => {
   const box = typeof target === 'string' ? qs(target) : target;
@@ -55,6 +58,53 @@ const flashTextRowSaved = (form) => {
   flashClass(form, 'is-saved');
   qsa('input[name="value"], textarea[name="value"]', form).forEach((field) => flashClass(field, 'field-saved'));
   flashClass(qs('button[type="submit"]', form), 'button-saved');
+};
+
+const flashContentFormSaved = (form) => {
+  const dirtyFields = Array.from(contentFormDirtyFields.get(form) ?? []);
+  dirtyFields.forEach((field) => flashClass(field, 'field-saved'));
+  flashClass(qs('button[type="submit"]', form), 'button-saved');
+  resetContentFormDirtyState(form);
+};
+
+const contentFormFields = (form) => qsa('input:not([type="hidden"]), select, textarea', form);
+
+const contentFieldValue = (field) => {
+  if (field instanceof HTMLInputElement && (field.type === 'checkbox' || field.type === 'radio')) {
+    return field.checked ? '1' : '0';
+  }
+
+  return field.value;
+};
+
+const resetContentFormDirtyState = (form) => {
+  const baselines = new Map();
+  contentFormFields(form).forEach((field) => {
+    baselines.set(field, contentFieldValue(field));
+  });
+  contentFormBaselines.set(form, baselines);
+  contentFormDirtyFields.set(form, new Set());
+};
+
+const updateContentFormDirtyField = (form, field) => {
+  const baselines = contentFormBaselines.get(form);
+  const dirtyFields = contentFormDirtyFields.get(form);
+  if (!baselines || !dirtyFields || !baselines.has(field)) return;
+
+  if (contentFieldValue(field) !== baselines.get(field)) {
+    dirtyFields.add(field);
+  } else {
+    dirtyFields.delete(field);
+  }
+};
+
+const bindContentFormDirtyTracking = (form) => {
+  resetContentFormDirtyState(form);
+  contentFormFields(form).forEach((field) => {
+    ['input', 'change'].forEach((eventName) => {
+      field.addEventListener(eventName, () => updateContentFormDirtyField(form, field));
+    });
+  });
 };
 
 const csrfToken = () => root()?.dataset.csrf || '';
@@ -111,6 +161,7 @@ const handleAdminForm = async (event) => {
   }
 
   const inlineFeedback = qs('[data-admin-inline-feedback]', form);
+  const isContentForm = form.hasAttribute('data-admin-content-form');
   if (inlineFeedback) {
     showInlineFeedback(inlineFeedback, 'Сохраняю...', 'loading');
   } else {
@@ -122,13 +173,23 @@ const handleAdminForm = async (event) => {
     if (inlineFeedback) {
       setFeedback('');
       showInlineFeedback(inlineFeedback, response.message || 'Сохранено.');
-      flashTextRowSaved(form);
+      if (isContentForm) {
+        flashContentFormSaved(form);
+      } else {
+        flashTextRowSaved(form);
+      }
     } else {
       setFeedback(response.message || 'Готово.', 'success');
     }
 
     if (form.dataset.successRedirect) {
-      window.location.href = form.dataset.successRedirect;
+      if (inlineFeedback && isContentForm) {
+        window.setTimeout(() => {
+          window.location.href = form.dataset.successRedirect;
+        }, CONTENT_FORM_REDIRECT_DELAY_MS);
+      } else {
+        window.location.href = form.dataset.successRedirect;
+      }
       return;
     }
 
@@ -446,6 +507,10 @@ const init = () => {
   if (!root()) return;
 
   qsa('[data-admin-form]').forEach((form) => {
+    if (form.hasAttribute('data-admin-content-form')) {
+      bindContentFormDirtyTracking(form);
+    }
+
     form.addEventListener('submit', handleAdminForm);
   });
 

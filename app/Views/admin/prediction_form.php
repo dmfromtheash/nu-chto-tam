@@ -20,7 +20,15 @@ $checked = static fn (string $key, mixed $default = 1): string => (int) ($predic
 </header>
 
 <section class="admin-panel">
-    <form class="admin-form" data-admin-form data-endpoint="<?= Security::escape($endpoint) ?>" data-success-redirect="/admin/predictions">
+    <form
+        class="admin-form"
+        data-admin-form
+        data-admin-content-form
+        data-endpoint="<?= Security::escape($endpoint) ?>"
+        <?php if (!$isEdit): ?>
+            data-success-redirect="/admin/predictions"
+        <?php endif; ?>
+    >
         <?php if ($isEdit): ?>
             <input type="hidden" name="id" value="<?= (int) $prediction['id'] ?>">
         <?php endif; ?>
@@ -72,5 +80,6 @@ $checked = static fn (string $key, mixed $default = 1): string => (int) ($predic
             <button class="button" type="submit"><?= $isEdit ? 'Сохранить карточку' : 'Создать карточку' ?></button>
             <a class="text-button" href="/admin/predictions">Отмена</a>
         </div>
+        <div class="inline-feedback admin-form-feedback" data-admin-inline-feedback aria-live="polite" hidden></div>
     </form>
 </section>

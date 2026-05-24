@@ -738,10 +738,19 @@
   border-radius: var(--radius);
   color: var(--text);
   background: rgba(5, 7, 12, 0.58);
+  transition: border-color 170ms ease, box-shadow 170ms ease, background 170ms ease;
 }
 
 .admin-form textarea {
   resize: vertical;
+}
+
+.admin-form-feedback {
+  margin-top: -6px;
+}
+
+.admin-form-feedback.is-loading {
+  color: var(--accent-2);
 }
 
 .span-2 {

@@ -20,7 +20,15 @@ $checked = static fn (string $key, mixed $default = 1): string => (int) ($pack[$
 </header>
 
 <section class="admin-panel">
-    <form class="admin-form" data-admin-form data-endpoint="<?= Security::escape($endpoint) ?>" data-success-redirect="/admin/packs">
+    <form
+        class="admin-form"
+        data-admin-form
+        data-admin-content-form
+        data-endpoint="<?= Security::escape($endpoint) ?>"
+        <?php if (!$isEdit): ?>
+            data-success-redirect="/admin/packs"
+        <?php endif; ?>
+    >
         <?php if ($isEdit): ?>
             <input type="hidden" name="id" value="<?= (int) $pack['id'] ?>">
         <?php endif; ?>
@@ -78,5 +86,6 @@ $checked = static fn (string $key, mixed $default = 1): string => (int) ($pack[$
             <button class="button" type="submit"><?= $isEdit ? 'Сохранить пак' : 'Создать пак' ?></button>
             <a class="text-button" href="/admin/packs">Отмена</a>
         </div>
+        <div class="inline-feedback admin-form-feedback" data-admin-inline-feedback aria-live="polite" hidden></div>
     </form>
 </section>
