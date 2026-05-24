@@ -1,5 +1,11 @@
 # Project State
 
+## Cabinet JSON CSRF 2026-05-24
+
+- Добавлена CSRF-проверка только для authenticated cabinet JSON mutations: `POST /api/cabinet/saved/update-note`, `POST /api/cabinet/saved/delete`, `POST /api/cabinet/profile/update`, `POST /api/cabinet/profile/change-password`.
+- `cabinet.js` берёт токен из `data-csrf` на root-элементе кабинета и отправляет его в `X-CSRF-Token` только для этих cabinet POST-запросов.
+- Admin API, auth API, guest mode, `/api/open-pack` и `/api/save-card` не менялись.
+
 ## Backup/restore workflow 2026-05-24
 
 - Создан `docs/BACKUP_AND_RESTORE.md`: ручной PowerShell backup/restore для `database/database.sqlite`, проверка backup-файлов, тестовая копия через `DB_PATH`, restore-предупреждения и чек-лист перед Codex/deploy/demo задачами.

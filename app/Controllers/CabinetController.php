@@ -67,6 +67,7 @@ final class CabinetController
     {
         $user = $this->requireUser();
         $input = $this->jsonInput();
+        $this->verifyCsrf($input);
         $savedId = $this->intFromInput($input['saved_id'] ?? null, 'saved_id');
 
         try {
@@ -87,6 +88,7 @@ final class CabinetController
     {
         $user = $this->requireUser();
         $input = $this->jsonInput();
+        $this->verifyCsrf($input);
         $savedId = $this->intFromInput($input['saved_id'] ?? null, 'saved_id');
 
         try {
@@ -123,6 +125,7 @@ final class CabinetController
     {
         $user = $this->requireUser();
         $input = $this->jsonInput();
+        $this->verifyCsrf($input);
 
         try {
             $updatedUser = $this->cabinet->updateUsername((int) $user['id'], (string) ($input['username'] ?? ''));
@@ -149,6 +152,7 @@ final class CabinetController
     {
         $user = $this->requireUser();
         $input = $this->jsonInput();
+        $this->verifyCsrf($input);
 
         try {
             $this->cabinet->changePassword(
@@ -218,6 +222,21 @@ final class CabinetController
         }
 
         return $decoded;
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     */
+    private function verifyCsrf(array $input): void
+    {
+        $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $input['_csrf_token'] ?? $input['csrf_token'] ?? null;
+
+        if (!Security::verifyCsrfToken(is_string($token) ? $token : null)) {
+            Response::json([
+                'ok' => false,
+                'error' => 'Сессия формы устарела. Обнови страницу и попробуй ещё раз.',
+            ], 419);
+        }
     }
 
     private function intFromInput(mixed $value, string $field): int
