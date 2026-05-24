@@ -97,11 +97,11 @@ $displayName = $isAuthenticated ? (string) $currentUser['username'] : $ui('commo
                     <div>
                         <p class="eyebrow"><?= Security::escape($ui('home.featured.eyebrow', 'Витрина')) ?></p>
                         <h2 id="featured-packs-title"><?= Security::escape($ui('home.featured.title', 'С чего начать')) ?></h2>
-                        <p class="section-heading__note">Три понятных входа: быстро на день, шире на период и честно про внутренний вайб.</p>
+                        <p class="section-heading__note"><?= Security::escape($ui('home.featured.note', 'Три понятных входа: быстро на день, шире на период и честно про внутренний вайб.')) ?></p>
                     </div>
                 </div>
                 <div class="featured-pack-grid" data-featured-packs aria-live="polite">
-                    <p class="empty-state">Подбираю три пака для старта.</p>
+                    <p class="empty-state"><?= Security::escape($ui('home.featured.loading', 'Подбираю три пака для старта.')) ?></p>
                 </div>
             </section>
 
@@ -110,7 +110,7 @@ $displayName = $isAuthenticated ? (string) $currentUser['username'] : $ui('commo
                     <div>
                         <p class="eyebrow"><?= Security::escape($ui('home.packs.eyebrow', 'Коллекция паков')) ?></p>
                         <h2 id="packs-title"><?= Security::escape($ui('home.packs.title', 'Выбери бустер для открытия')) ?></h2>
-                        <p class="section-heading__note">Остальные сценарии ниже: короткие, большие, вопросные и для друзей.</p>
+                        <p class="section-heading__note"><?= Security::escape($ui('home.packs.note', 'Остальные сценарии ниже: короткие, большие, вопросные и для друзей.')) ?></p>
                     </div>
                     <div class="section-actions">
                         <button class="text-button" type="button" data-refresh-packs><?= Security::escape($ui('common.refresh', 'Обновить')) ?></button>
