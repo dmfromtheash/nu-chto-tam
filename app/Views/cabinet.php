@@ -222,6 +222,7 @@ $displayInitial = function_exists('mb_substr') ? mb_substr($displayName, 0, 1, '
                             <input type="text" name="username" value="<?= Security::escape($displayName) ?>" maxlength="40" required>
                         </label>
                         <button class="button" type="submit">Сохранить имя</button>
+                        <div class="inline-feedback" data-profile-feedback aria-live="polite" hidden></div>
                     </form>
 
                     <form class="settings-form" data-password-form>
@@ -238,6 +239,7 @@ $displayInitial = function_exists('mb_substr') ? mb_substr($displayName, 0, 1, '
                             <input type="password" name="new_password_confirm" autocomplete="new-password" minlength="8" required>
                         </label>
                         <button class="button is-secondary" type="submit">Сменить пароль</button>
+                        <div class="inline-feedback" data-password-feedback aria-live="polite" hidden></div>
                     </form>
 
                     <label class="motion-toggle cabinet-motion-toggle">

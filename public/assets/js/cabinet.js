@@ -119,6 +119,47 @@ const setMessage = (message = '', type = 'info') => {
   box.hidden = message === '';
 };
 
+const inlineFeedbackTimers = new WeakMap();
+const savedStateTimers = new WeakMap();
+
+const showInlineFeedback = (target, message, type = 'success') => {
+  const box = typeof target === 'string' ? qs(target) : target;
+  if (!box) return;
+
+  const previousTimer = inlineFeedbackTimers.get(box);
+  if (previousTimer) window.clearTimeout(previousTimer);
+
+  box.textContent = message || (type === 'success' ? 'Сохранено.' : '');
+  box.classList.remove('is-success', 'is-error', 'is-loading');
+  box.classList.add(`is-${type}`);
+  box.hidden = box.textContent === '';
+
+  if (type === 'success' && !box.hidden) {
+    const timer = window.setTimeout(() => {
+      box.hidden = true;
+      box.textContent = '';
+      box.classList.remove('is-success', 'is-error', 'is-loading');
+      inlineFeedbackTimers.delete(box);
+    }, 2600);
+    inlineFeedbackTimers.set(box, timer);
+  }
+};
+
+const flashSavedState = (...elements) => {
+  elements.filter((element) => element instanceof Element).forEach((element) => {
+    const className = element.matches('button') ? 'button-saved' : 'field-saved';
+    const previousTimer = savedStateTimers.get(element);
+    if (previousTimer) window.clearTimeout(previousTimer);
+
+    element.classList.add(className);
+    const timer = window.setTimeout(() => {
+      element.classList.remove(className);
+      savedStateTimers.delete(element);
+    }, 2600);
+    savedStateTimers.set(element, timer);
+  });
+};
+
 const renderProfile = () => {
   if (!state.user) return;
 
@@ -258,6 +299,7 @@ const renderSavedCards = () => {
         <button class="button is-secondary" type="button" data-save-note="${card.saved_id}" aria-label="Сохранить заметку">Сохранить заметку</button>
         <button class="text-button danger-link" type="button" data-delete-saved="${card.saved_id}" aria-label="Удалить карточку из сохранённых">Удалить</button>
       </div>
+      <div class="inline-feedback note-inline-feedback" data-note-feedback="${card.saved_id}" aria-live="polite" hidden></div>
     </article>
   `).join('');
 };
@@ -362,8 +404,21 @@ const updateNote = async (savedId) => {
     note,
   });
 
-  setMessage(payload.message || 'Заметка сохранена.', 'success');
   await loadSaved();
+
+  const card = qs(`[data-saved-id="${savedId}"]`);
+  const feedback = qs(`[data-note-feedback="${savedId}"]`, card ?? document);
+  const updatedInput = qs(`[data-note-input="${savedId}"]`, card ?? document);
+  const button = qs(`[data-save-note="${savedId}"]`, card ?? document);
+
+  if (feedback) {
+    setMessage('');
+    showInlineFeedback(feedback, payload.message || 'Заметка сохранена.');
+    flashSavedState(updatedInput, button);
+    return;
+  }
+
+  setMessage(payload.message || 'Заметка сохранена.', 'success');
 };
 
 const deleteSaved = async (savedId) => {
@@ -380,8 +435,10 @@ const updateProfile = async (form) => {
     username: new FormData(form).get('username'),
   });
 
-  setMessage(payload.message || 'Профиль обновлён.', 'success');
   await loadSummary();
+  setMessage('');
+  showInlineFeedback(qs('[data-profile-feedback]', form), payload.message || 'Профиль обновлён.');
+  flashSavedState(qs('input[name="username"]', form), qs('button[type="submit"]', form));
 };
 
 const changePassword = async (form) => {
@@ -393,7 +450,9 @@ const changePassword = async (form) => {
   });
 
   form.reset();
-  setMessage(payload.message || 'Пароль обновлён.', 'success');
+  setMessage('');
+  showInlineFeedback(qs('[data-password-feedback]', form), payload.message || 'Пароль обновлён.');
+  flashSavedState(...qsa('input', form), qs('button[type="submit"]', form));
 };
 
 const setupReducedMotion = () => {
