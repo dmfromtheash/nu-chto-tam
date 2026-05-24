@@ -40,12 +40,12 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
 const api = async (path, options = {}) => {
   const response = await fetch(path, {
     credentials: 'same-origin',
+    ...options,
     headers: {
       Accept: 'application/json',
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
       ...(options.headers ?? {}),
     },
-    ...options,
   });
 
   let payload = null;
