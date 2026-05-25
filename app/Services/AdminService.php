@@ -1239,6 +1239,16 @@ final class AdminService
         }
 
         $newStatus = (int) $user['is_blocked'] === 1 ? 0 : 1;
+
+        if (
+            (string) $user['role'] === 'admin'
+            && (int) $user['is_blocked'] === 0
+            && $newStatus === 1
+            && $this->activeAdminCount() <= 1
+        ) {
+            throw new InvalidArgumentException('Нельзя оставить проект без активного администратора.');
+        }
+
         Database::query(
             'UPDATE users SET is_blocked = :is_blocked WHERE id = :id',
             [
@@ -1269,12 +1279,13 @@ final class AdminService
             throw new InvalidArgumentException('Пользователь не найден.');
         }
 
-        if ((string) $user['role'] === 'admin' && $role !== 'admin' && $this->adminCount() <= 1) {
-            throw new InvalidArgumentException('Нельзя оставить проект без единого admin.');
-        }
-
-        if ($targetUserId === $adminId && (string) $user['role'] === 'admin' && $role !== 'admin' && $this->adminCount() <= 1) {
-            throw new InvalidArgumentException('Нельзя снять с себя роль admin, пока ты единственный admin.');
+        if (
+            (string) $user['role'] === 'admin'
+            && (int) $user['is_blocked'] === 0
+            && $role !== 'admin'
+            && $this->activeAdminCount() <= 1
+        ) {
+            throw new InvalidArgumentException('Нельзя оставить проект без активного администратора.');
         }
 
         Database::query(
@@ -1479,9 +1490,9 @@ final class AdminService
         return is_array($row) ? $row : null;
     }
 
-    private function adminCount(): int
+    private function activeAdminCount(): int
     {
-        return (int) Database::query('SELECT COUNT(*) FROM users WHERE role = "admin"')->fetchColumn();
+        return (int) Database::query('SELECT COUNT(*) FROM users WHERE role = "admin" AND is_blocked = 0')->fetchColumn();
     }
 
     /**
