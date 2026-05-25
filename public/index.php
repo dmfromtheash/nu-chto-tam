@@ -42,7 +42,7 @@ $router->get('/', static function () use ($config, $authService, $analyticsServi
     $dbStatus = [
         'ok' => false,
         'label' => 'База данных не создана',
-        'details' => 'Запустите php database/seed.php --fresh, чтобы создать SQLite-файл и демо-данные.',
+        'details' => 'SQLite-файл не найден. Проверьте DB_PATH/config и восстановите ожидаемую базу. Для первой пустой установки используйте документированный сценарий первой установки, но не сбрасывайте существующую базу без backup.',
         'packs_count' => null,
         'predictions_count' => null,
     ];

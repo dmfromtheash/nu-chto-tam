@@ -33,7 +33,7 @@ final class Database
         }
 
         if (!is_file($path)) {
-            throw new RuntimeException('SQLite database file was not found. Run: php database/seed.php --fresh');
+            throw new RuntimeException('SQLite database file was not found. Check DB_PATH and restore the expected database file. For a first empty install, initialize the database deliberately after backup/restore review.');
         }
 
         $pdo = new PDO('sqlite:' . $path);
