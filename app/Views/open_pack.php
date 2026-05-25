@@ -9,12 +9,14 @@ $isAuthenticated = is_array($currentUser);
 $isAdmin = $isAuthenticated && (($currentUser['role'] ?? null) === 'admin');
 $displayName = $isAuthenticated ? (string) $currentUser['username'] : 'Гость';
 $initialPackSlug = isset($initialPackSlug) ? (string) $initialPackSlug : '';
+$csrfToken = isset($csrfToken) ? (string) $csrfToken : '';
 ?>
 <main
     class="open-page"
     data-open-pack-app
     data-initial-pack="<?= Security::escape($initialPackSlug) ?>"
     data-authenticated="<?= $isAuthenticated ? 'true' : 'false' ?>"
+    data-csrf="<?= Security::escape($csrfToken) ?>"
 >
     <header class="open-topbar" aria-label="Верхняя панель открытия">
         <a class="text-button" href="/#packs">← К пакам</a>

@@ -6,6 +6,7 @@ namespace App\Controllers;
 
 use App\Core\Database;
 use App\Core\Response;
+use App\Core\Security;
 use App\Core\Session;
 use App\Models\User;
 use App\Services\AnalyticsService;
@@ -163,6 +164,7 @@ final class ApiController
         }
 
         $input = $this->jsonInput();
+        $this->verifyCsrf($input);
         $openingId = $input['opening_id'] ?? null;
 
         if (!is_int($openingId) && !(is_string($openingId) && ctype_digit($openingId))) {
@@ -397,6 +399,21 @@ final class ApiController
         }
 
         return $decoded;
+    }
+
+    /**
+     * @param array<string, mixed> $input
+     */
+    private function verifyCsrf(array $input): void
+    {
+        $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $input['_csrf_token'] ?? $input['csrf_token'] ?? null;
+
+        if (!Security::verifyCsrfToken(is_string($token) ? $token : null)) {
+            Response::json([
+                'ok' => false,
+                'error' => 'Сессия формы устарела. Обнови страницу и попробуй ещё раз.',
+            ], 419);
+        }
     }
 
     /**

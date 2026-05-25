@@ -56,6 +56,7 @@ const state = {
 const qs = (selector, root = document) => root.querySelector(selector);
 const qsa = (selector, root = document) => Array.from(root.querySelectorAll(selector));
 const app = () => qs('[data-open-pack-app]');
+const csrfToken = () => app()?.dataset.csrf || '';
 
 const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
   '&': '&amp;',
@@ -66,14 +67,15 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => 
 })[char]);
 
 const api = async (path, options = {}) => {
+  const { headers: optionHeaders = {}, ...fetchOptions } = options;
   const response = await fetch(path, {
     credentials: 'same-origin',
+    ...fetchOptions,
     headers: {
       Accept: 'application/json',
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(options.headers ?? {}),
+      ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
+      ...optionHeaders,
     },
-    ...options,
   });
 
   let payload = null;
@@ -545,6 +547,9 @@ const saveCard = async (openingId, button) => {
   try {
     const payload = await api('/api/save-card', {
       method: 'POST',
+      headers: {
+        'X-CSRF-Token': csrfToken(),
+      },
       body: JSON.stringify({ opening_id: openingId }),
     });
     button.textContent = payload.message?.includes('уже') ? 'Уже в коллекции' : 'Сохранено';
