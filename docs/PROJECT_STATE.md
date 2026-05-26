@@ -1,5 +1,43 @@
 # Project State
 
+## Confirmed git slice 2026-05-26
+
+- Branch: `main`.
+- Last known HEAD: `4c9774c fix: transfer guest openings on registration`.
+- `origin/main` синхронизирован после push; текущий `git status -sb` показывает `main...origin/main` без ahead/behind.
+- Status: clean по последнему выводу пользователя и текущей pre-edit проверке `git status --short`.
+
+## Foundation fixes 2026-05-26
+
+- `9037434 chore: harden production safety preflight wording` - runtime/docs wording больше не подталкивает к `seed.php --fresh` как обычному решению, preflight явно ловит production-опасные настройки.
+- `3937089 fix: require csrf for save-card api` - `POST /api/save-card` требует CSRF: view кладёт token в DOM, `open-pack.js` отправляет `X-CSRF-Token`, controller возвращает `419` при ошибке.
+- `22b375c fix: guard last active admin` - last admin guard считает активных админов через `role = "admin" AND is_blocked = 0`, поэтому нельзя оставить проект без активного администратора.
+- `4c9774c fix: transfer guest openings on registration` - при регистрации гостевые `openings` текущего `guest_id` переносятся на нового `user_id`.
+
+Влияние `4c9774c`:
+
+- переносится только `openings` как история открытий;
+- `guest_id` в перенесённых строках очищается, чтобы те же открытия не оставались в гостевой истории после выхода;
+- `saved_cards`, `events`, `visitors`, `rate_limits` и analytics не переносились;
+- это foundation для будущего Fate Portrait / "Лор Личности", где `openings` должны быть источником истины для алгоритма, а collection/saved cards остаются отдельным пользовательским слоем.
+
+## Roadmap v4.8 next-step note
+
+- После переноса гостевой истории следующий крупный смысловой трек: Stress/Security Test Plan, Backup/Test DB Drill, UI/UX audit, Content Universe Design Doc, Fate Portrait / "Лор Личности" Design Doc.
+- Не начинать реализацию Fate Portrait сразу: сначала нужен product+math+content design doc, metadata model, категории паков, веса, confidence/coverage, premium-depth правила и правила скрытия/архивации отображения.
+- Для Fate Portrait базовый принцип: портрет развивается по истории `openings` из разных категорий/паков; saved cards и collection display - отдельный слой, который не должен быть единственным источником алгоритма.
+- Free-портрет должен оставаться полезным. Premium-паки могут добавлять premium-depth, редкие слои и более глубокий лор, но не должны становиться "единственной правдой".
+
+## Stop list v4.8
+
+- Не запускать `database/seed.php --fresh` как обычную проверку или repair-команду.
+- Не трогать `database/database.sqlite` без backup/test DB workflow.
+- Не запускать browser/API/admin mutation tests на live DB.
+- Не начинать DB migration без отдельного read-only audit, backup, test migration и rollback plan.
+- Не начинать Stripe/payment implementation без отдельного entitlements/access/limits design.
+- Не кодить Fate Portrait до design doc и metadata model.
+- Не смешивать docs/security/UI/content/DB/monetization в один этап.
+
 ## DB path env override 2026-05-24
 
 - Добавлен временный env override `NCHT_DB_PATH`: runtime bootstrap, `scripts/preflight.php` и `scripts/smoke.php` используют его как `DB_PATH`, если переменная задана и не пуста.
@@ -54,6 +92,7 @@
 - Этап 6: финальная локальная полировка, QA, демо-инструкции и подготовка к обычному хостингу/VPS.
 - Seed создаёт 14 casual-паков и 154 карточки.
 - Стиль контента остаётся бытовым, человечным, дружелюбным и слегка смешным.
+- Регистрация нового аккаунта переносит гостевые `openings` текущего `guest_id` в историю нового пользователя без изменения schema.
 
 ## Рабочие frontend-возможности
 
@@ -208,7 +247,7 @@ API/browser-проверки выше могут писать runtime-данны
 - Нужно проверить `pdo_sqlite` на целевом хостинге.
 - Нужно заменить `SESSION_SECRET` и пароль администратора перед non-local запуском.
 - Rate limit минимальный и пригоден для старта, но перед production его стоит нагрузочно проверить.
-- Перенос гостевой истории в аккаунт пока не реализован.
+- Fate Portrait / "Лор Личности" пока не реализован; перед кодом нужен отдельный product+math+content design doc и metadata model.
 - Кабинет пока без пагинации и без сложных графиков; для Этапа 4 это намеренно.
 - Админка без массового импорта/экспорта и без сложной аналитики; это оставлено на будущую полировку.
 - Аналитика лёгкая и событийная, без BI, retention-политики и сложных графиков.
