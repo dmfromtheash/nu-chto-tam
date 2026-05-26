@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Core\Database;
 use App\Core\Session;
 use App\Core\Validator;
 use App\Models\User;
@@ -44,11 +45,23 @@ final class AuthService
             throw new InvalidArgumentException('Пользователь с таким email уже есть.');
         }
 
-        $userId = User::create($username, $email, password_hash($password, PASSWORD_DEFAULT));
-        $user = User::findById($userId);
+        $guestId = $this->currentGuestId();
+        $pdo = Database::connect();
+        $pdo->beginTransaction();
 
-        if ($user === null) {
-            throw new RuntimeException('Не удалось создать пользователя.');
+        try {
+            $userId = User::create($username, $email, password_hash($password, PASSWORD_DEFAULT));
+            $user = User::findById($userId);
+
+            if ($user === null) {
+                throw new RuntimeException('Не удалось создать пользователя.');
+            }
+
+            $this->transferGuestOpenings($userId, $guestId);
+            $pdo->commit();
+        } catch (\Throwable $exception) {
+            $pdo->rollBack();
+            throw $exception;
         }
 
         $this->loginUser($user);
@@ -126,5 +139,42 @@ final class AuthService
         Session::regenerate();
         Session::set('user_id', (int) $user['id']);
         Session::set('role', (string) $user['role']);
+    }
+
+    private function currentGuestId(): ?string
+    {
+        $sessionGuestId = Session::get('guest_id');
+
+        if (is_string($sessionGuestId) && $this->isValidGuestId($sessionGuestId)) {
+            return $sessionGuestId;
+        }
+
+        $cookieGuestId = $_COOKIE['guest_id'] ?? null;
+
+        return is_string($cookieGuestId) && $this->isValidGuestId($cookieGuestId)
+            ? $cookieGuestId
+            : null;
+    }
+
+    private function isValidGuestId(string $guestId): bool
+    {
+        return strlen($guestId) === 64 && ctype_xdigit($guestId);
+    }
+
+    private function transferGuestOpenings(int $userId, ?string $guestId): void
+    {
+        if ($guestId === null) {
+            return;
+        }
+
+        Database::query(
+            'UPDATE openings
+            SET user_id = :user_id, guest_id = NULL
+            WHERE guest_id = :guest_id AND user_id IS NULL',
+            [
+                ':user_id' => $userId,
+                ':guest_id' => $guestId,
+            ]
+        );
     }
 }
