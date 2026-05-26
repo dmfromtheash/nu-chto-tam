@@ -48,39 +48,39 @@ const packSymbols = {
 
 const featuredCopy = {
   daily: {
-    label: 'Быстрый старт',
-    title: 'Пак на сегодня',
-    text: 'Один короткий заход, чтобы поймать тон дня и не раскладывать всё по полкам.',
+    label: 'Первое открытие',
+    title: 'Карта на сегодня',
+    text: 'Самый короткий вход в сцену: одна карта, чтобы поймать тон дня без долгих раскладов.',
   },
   weekly: {
-    label: 'Большой заход',
+    label: 'На период',
     title: 'Неделя в трёх кадрах',
-    text: 'Три карты для недели: с чего начать, где не расплескаться и чем закрыть круг.',
+    text: 'Открой сцену с тремя картами: с чего начать, где не расплескаться и чем закрыть круг.',
   },
   monthly: {
-    label: 'Большой заход',
+    label: 'На период',
     title: 'Месяц крупным планом',
-    text: 'Пять карт для длинного захода: не план жизни, а спокойная сводка по курсу.',
+    text: 'Пять карт для длинного захода: не план жизни, а спокойная сводка в сцене открытия.',
   },
   mood: {
-    label: 'Внутренний вайб',
+    label: 'Внутренний тон',
     title: 'Проверить настроение',
-    text: 'Если внутри шумно или непонятно, можно дать этому нормальное короткое имя.',
+    text: 'Мягкий старт для момента, когда внутри шумно и хочется вытащить короткое название.',
   },
   question: {
-    label: 'Спросить вслух',
+    label: 'Вопрос рандому',
     title: 'Вопрос рандому',
-    text: 'Ответ может быть не по делу, но иногда появляется подозрительно вовремя.',
+    text: 'Выбери вопрос, открой сцену и дай карточке ответить без лишней серьёзности.',
   },
   rare: {
-    label: 'Редкий выбор',
+    label: 'Редкий старт',
     title: 'Странная удача на витрине',
-    text: 'Для тех случаев, когда хочется вытащить что-то необычное и немного прищуриться.',
+    text: 'Для случаев, когда хочется начать с необычного пака и немного прищуриться.',
   },
   'inner-weather': {
-    label: 'Внутренний вайб',
+    label: 'Внутренний тон',
     title: 'Проверить внутренний тон',
-    text: 'Небольшая сводка для состояния, которое сложно объяснить одним словом.',
+    text: 'Небольшая сцена для состояния, которое сложно объяснить одним словом.',
   },
 };
 
@@ -289,7 +289,7 @@ const renderPackNavigation = (categorySections = []) => {
     {
       sectionId: 'section-start',
       icon: '✦',
-      title: uiText('home.featured.title', 'С чего начать'),
+      title: uiText('home.featured.title', 'Стартовые паки'),
     },
     ...categorySections.map((category) => ({
       sectionId: category.sectionId,
@@ -323,9 +323,9 @@ const renderFeaturedPacks = () => {
 
   target.innerHTML = items.map((pack) => {
     const copy = featuredCopy[pack.slug] || {
-      label: 'Рекомендуем',
+      label: 'Можно начать',
       title: pack.title,
-      text: pack.description || 'Пак выглядит достаточно уверенно, чтобы дать ему шанс.',
+      text: pack.description || 'Пак выглядит достаточно уверенно, чтобы открыть для него сцену.',
     };
     const count = cardCountForPack(pack);
     const typeClass = safeClass(pack.type);
@@ -344,7 +344,7 @@ const renderFeaturedPacks = () => {
           <span class="featured-pack__label">${escapeHtml(copy.label)}</span>
           <h3>${escapeHtml(copy.title)}</h3>
           <p>${escapeHtml(copy.text)}</p>
-          <a class="button featured-pack__action" href="${escapeHtml(packUrl(pack))}">Открыть пак</a>
+          <a class="button featured-pack__action" href="${escapeHtml(packUrl(pack))}">Перейти к открытию</a>
         </div>
       </article>
     `;

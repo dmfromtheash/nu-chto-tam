@@ -43,11 +43,11 @@ $displayName = $isAuthenticated ? (string) $currentUser['username'] : $ui('commo
     </header>
 
     <section class="game-hero home-hero" aria-labelledby="page-title">
-        <p class="eyebrow"><?= Security::escape($ui('home.hero.eyebrow', 'Карточный рандом для обычных дней')) ?></p>
+        <p class="eyebrow"><?= Security::escape($ui('home.hero.eyebrow', 'Витрина паков для обычных дней')) ?></p>
         <h1 id="page-title"><?= Security::escape($ui('home.hero.title', 'Ну что там?')) ?></h1>
-        <p class="game-hero__lead"><?= Security::escape($ui('home.hero.lead', 'Выбери пак, открой карту и посмотри, что сегодня придумал рандом.')) ?></p>
+        <p class="game-hero__lead"><?= Security::escape($ui('home.hero.lead', 'Выбери пак на витрине, перейди в сцену открытия и вытяни карту: иногда это шутка, иногда — очень вовремя.')) ?></p>
         <div class="home-hero__actions">
-            <a class="button" href="#section-start"><?= Security::escape($ui('home.hero.choose_button', 'Выбрать пак')) ?></a>
+            <a class="button" href="#section-start"><?= Security::escape($ui('home.hero.choose_button', 'К стартовым пакам')) ?></a>
         </div>
     </section>
 
@@ -69,7 +69,7 @@ $displayName = $isAuthenticated ? (string) $currentUser['username'] : $ui('commo
                 <nav class="pack-nav__links" data-pack-nav-links aria-label="<?= Security::escape($ui('home.pack_nav.aria', 'Разделы паков')) ?>">
                     <a class="pack-nav__link is-active" href="#section-start" data-pack-nav-link aria-current="true">
                         <span aria-hidden="true">✦</span>
-                        <strong><?= Security::escape($ui('home.featured.title', 'С чего начать')) ?></strong>
+                        <strong><?= Security::escape($ui('home.featured.title', 'Стартовые паки')) ?></strong>
                     </a>
                     <a class="pack-nav__link" href="#section-fast" data-pack-nav-link>
                         <span aria-hidden="true">⚡</span>
@@ -96,12 +96,12 @@ $displayName = $isAuthenticated ? (string) $currentUser['username'] : $ui('commo
                 <div class="section-heading">
                     <div>
                         <p class="eyebrow"><?= Security::escape($ui('home.featured.eyebrow', 'Витрина')) ?></p>
-                        <h2 id="featured-packs-title"><?= Security::escape($ui('home.featured.title', 'С чего начать')) ?></h2>
-                        <p class="section-heading__note"><?= Security::escape($ui('home.featured.note', 'Три понятных входа: быстро на день, шире на период и честно про внутренний вайб.')) ?></p>
+                        <h2 id="featured-packs-title"><?= Security::escape($ui('home.featured.title', 'Стартовые паки')) ?></h2>
+                        <p class="section-heading__note"><?= Security::escape($ui('home.featured.note', 'Выбери один из трёх входов: дальше откроется отдельная сцена и первая карта.')) ?></p>
                     </div>
                 </div>
                 <div class="featured-pack-grid" data-featured-packs aria-live="polite">
-                    <p class="empty-state"><?= Security::escape($ui('home.featured.loading', 'Подбираю три пака для старта.')) ?></p>
+                    <p class="empty-state"><?= Security::escape($ui('home.featured.loading', 'Подбираю стартовые паки для первой сцены.')) ?></p>
                 </div>
             </section>
 
