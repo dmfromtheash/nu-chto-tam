@@ -11,7 +11,7 @@ $messages = $messages ?? [];
     <section class="glass-panel narrow-panel" aria-labelledby="register-title">
         <p class="eyebrow">Аккаунт</p>
         <h1 id="register-title">Регистрация</h1>
-        <p class="lead">Минимальная форма для Этапа 2. Красивый кабинет и карточный frontend появятся позже.</p>
+        <p class="lead">Аккаунт хранит историю открытий, коллекцию сохранённых карточек и заметки — из этого позже сможет вырасти “Портрет Судьбы” / “Лор Личности”. Если ты уже открывал карточки как гость, после регистрации эти открытия сохранятся в истории аккаунта.</p>
 
         <?php foreach ($messages as $message): ?>
             <p class="notice is-success"><?= Security::escape($message) ?></p>

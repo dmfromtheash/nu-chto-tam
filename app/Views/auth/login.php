@@ -11,7 +11,7 @@ $messages = $messages ?? [];
     <section class="glass-panel narrow-panel" aria-labelledby="login-title">
         <p class="eyebrow">Аккаунт</p>
         <h1 id="login-title">Вход</h1>
-        <p class="lead">Для сохранения карточек в коллекцию нужен аккаунт. Без аккаунта сайт тоже работает в гостевом режиме.</p>
+        <p class="lead">Вход возвращает тебя к истории открытий, коллекции сохранённых карточек и заметкам. Позже эти следы смогут стать основой для “Лора Личности”, а пока аккаунт просто помогает не потерять удачные попадания.</p>
 
         <?php foreach ($messages as $message): ?>
             <p class="notice is-success"><?= Security::escape($message) ?></p>
