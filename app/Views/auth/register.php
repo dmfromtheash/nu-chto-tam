@@ -46,6 +46,7 @@ $messages = $messages ?? [];
             <div class="button-row">
                 <button class="button" type="submit">Создать аккаунт</button>
                 <a class="button is-secondary" href="/login">Уже есть вход</a>
+                <a class="button is-secondary" href="/">На главную</a>
             </div>
         </form>
     </section>
