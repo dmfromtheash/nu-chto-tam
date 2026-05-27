@@ -469,7 +469,7 @@ const renderResult = (pack, cards) => {
             <h3 class="game-card__title">${escapeHtml(title)}</h3>
             <p class="game-card__body">${escapeHtml(card.text)}</p>
             <footer class="game-card__footer">
-              <button class="button is-secondary save-card-button" type="button" data-save-card="${Number(card.opening_id)}">
+              <button class="button is-secondary save-card-button" type="button" data-save-card="${Number(card.opening_id)}" disabled aria-disabled="true" tabindex="-1">
                 Сохранить в коллекцию
               </button>
               <div class="save-message" data-save-message="${Number(card.opening_id)}" aria-live="polite"></div>
@@ -506,6 +506,14 @@ const revealCard = (cardElement) => {
   cardElement.setAttribute('aria-label', 'Карточка раскрыта');
   cardElement.removeAttribute('role');
   cardElement.tabIndex = -1;
+
+  const saveButton = qs('[data-save-card]', cardElement);
+  if (saveButton) {
+    saveButton.disabled = false;
+    saveButton.removeAttribute('aria-disabled');
+    saveButton.removeAttribute('tabindex');
+  }
+
   scheduleTextFit();
 };
 
