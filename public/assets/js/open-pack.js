@@ -408,6 +408,11 @@ const scheduleTextFit = () => {
   });
 };
 
+const setResultCaption = (message = 'Что выпало') => {
+  const caption = qs('.stage-result-caption');
+  if (caption) caption.textContent = message;
+};
+
 const renderIncomingBacks = (count) => {
   const grid = qs('[data-result-grid]');
   if (!grid) return;
@@ -481,6 +486,7 @@ const renderResult = (pack, cards) => {
   });
 
   grid.innerHTML = renderStageCards(cardHtml, cards.length);
+  setResultCaption('Карты на столе. Нажми любую, чтобы раскрыть.');
   scheduleTextFit();
 
   qsa('[data-save-card]', grid).forEach((button) => {
@@ -512,6 +518,11 @@ const revealCard = (cardElement) => {
     saveButton.disabled = false;
     saveButton.removeAttribute('aria-disabled');
     saveButton.removeAttribute('tabindex');
+  }
+
+  const resultGrid = qs('[data-result-grid]');
+  if (resultGrid && !qs('.game-card.is-awaiting-reveal', resultGrid)) {
+    setResultCaption();
   }
 
   scheduleTextFit();
